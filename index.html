@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- VIEWPORT: ginagawang tama ang laki ng page sa phone. viewport-fit=cover = sakop pati notch area. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#05030c" />
+    <!-- dark ang buong page: iwas puting flash at tama ang kulay ng native controls -->
+    <meta name="color-scheme" content="dark" />
+    <!-- SEO + SHARE PREVIEW: lumalabas kapag ishinare ang link (Messenger, IG, iMessage, etc.). Para lumabas ang picture, ilagay ang buong URL ng site mo sa og:image (hal. https://yoursite.com/pfp.png). -->
+    <meta
+      name="description"
+      content="Contact John Jeremy: social links, call, save contact, or send a message."
+    />
+    <meta property="og:type" content="profile" />
+    <meta property="og:title" content="Let’s Connect | John Jeremy" />
+    <meta
+      property="og:description"
+      content="Tap to call, save my contact, or send me a message."
+    />
+    <!-- og:image: palitan ng buong URL ng site mo (hal. https://yoursite.com/pfp.jpg), kung hindi hindi lalabas ang preview -->
+    <meta property="og:image" content="pfp.jpg" />
+    <meta property="og:image:width" content="800" />
+    <meta property="og:image:height" content="800" />
+    <meta name="twitter:card" content="summary" />
+    <!-- FAVICON: emoji muna habang wala pang icon file. Palitan ng <link rel="icon" href="favicon.png"> kung meron. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%B2%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <!-- iOS: pinipigilan ang auto-detect ng numero (para hindi lumabas ang sarili nilang "Call / Add to Contacts" sa text). Gumagana pa rin ang mga tel: link na ikaw ang naglagay. -->
+    <meta name="format-detection" content="telephone=no" />
+    <!-- iOS: para sa "Add to Home Screen" mode (fullscreen, walang browser bar) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <!-- TITLE: ito ang makikita sa browser tab. -->
+    <title>Let’s Connect | John Jeremy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- FONT: Plus Jakarta Sans mula sa Google Fonts. Kailangan ng internet para ma-load. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- DESIGN: lahat ng kulay, laki at layout ay nasa style.css -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- PRELOAD: sinisimulan nang i-download ang pfp habang nagbabasa pa ng CSS/JS. Kung papalitan mo ang CONFIG.photo, palitan din ito. -->
+    <link rel="preload" as="image" href="pfp.jpg" fetchpriority="high" />
+    <!-- Kapag naka-off ang JavaScript, nakatago ang lahat (opacity 0). Ibinabalik ito ng noscript. -->
+    <noscript
+      ><style>
+        .in,
+        .pop,
+        .line {
+          opacity: 1;
+        }
+      </style></noscript
+    >
+    <!-- FAILSAFE: kung may error sa script at hindi tumakbo ang intro, ipinapakita pa rin ang page pagkalipas ng 3.5s -->
+    <script>
+      setTimeout(function () {
+        document.documentElement.classList.add("failsafe");
+      }, 3500);
+    </script>
+  </head>
+  <body>
+    <!-- ==== MAIN PAGE ====
+         Ang .stage ay may 3 bahagi: (1) header (pfp, title, name), (2) social buttons, (3) Send a Message card.
+         Sa landscape, lilipat ang (2) at (3) sa kanan. Ang .sp ay spacer (m = laki ng gap). -->
+    <main class="stage" id="stage">
+      <!-- HEADER: pfp + LET'S CONNECT + name -->
+      <div class="hd">
+        <div class="hdi">
+          <i class="sp" style="--m: 34; --g: 0.6"></i>
+          <!-- PROFILE PHOTO: palitan sa script.js -> CONFIG.photo. Ang placeholder sa loob ay para lang kung walang photo. -->
+          <div
+            class="avatar pop"
+            id="av"
+            style="--d: 0.05s"
+            role="button"
+            tabindex="0"
+            aria-label="View profile photo"
+          >
+            <div class="in2" id="photo">
+              <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <rect width="100" height="100" fill="#ebe8f6" />
+                <circle cx="50" cy="38" r="18" fill="#a9a9bd" />
+                <path
+                  d="M14 100c0-24 15-36 36-36s36 12 36 36z"
+                  fill="#a9a9bd"
+                />
+              </svg>
+            </div>
+            <div class="dot"></div>
+          </div>
+          <i class="sp" style="--m: 26; --g: 0.5"></i>
+          <!-- TITLE: dito palitan ang "LET'S CONNECT" -->
+          <div class="in" style="--d: 0.25s">
+            <h1><span class="l">LET’S</span> <span class="b">CONNECT</span></h1>
+          </div>
+          <i class="sp" style="--m: 12; --g: 0.2"></i>
+          <!-- NAME: dito palitan ang "John Jeremy" (nasa gitna ng dalawang guhit) -->
+          <div class="nrow">
+            <div class="rule sh line" style="--d: 0.45s"></div>
+            <div class="nm in" style="--d: 0.4s">John Jeremy</div>
+            <div class="rule sh r line" style="--d: 0.45s"></div>
+          </div>
+          <i class="sp" style="--m: 34; --g: 1"></i>
+          <!-- SOCIAL BUTTONS
+               Ang link at username ay kinukuha ng script.js sa CONFIG.
+               Magdagdag ng bagong platform: kopyahin ang isang buong <div class="in"> block, palitan ang id, icon (svg) at text. -->
+          <div class="stack">
+            <div class="row2">
+              <!-- FACEBOOK (link: CONFIG.facebook) -->
+              <div class="in" style="--d: 0.55s">
+                <a
+                  class="btn"
+                  id="fb"
+                  href="https://www.facebook.com/john.jeremy.33633"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="--tg: 30; --s: 90"
+                >
+                  <svg
+                    class="ic"
+                    style="--s: 72; border-radius: 0"
+                    viewBox="282 190 478 840"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M711.3 660 734 512H592v-96.04C592 375.47 611.84 336 675.44 336H740V210s-58.59-10-114.61-10C508.44 200 432 270.88 432 399.2V512H302v148h130v357.78a517.4 517.4 0 0 0 160 0V660z"
+                    />
+                  </svg>
+                  <span class="tx">
+                    <b>Facebook</b>
+                    <span id="fbh">John Jeremy</span>
+                  </span>
+                  <svg
+                    class="ar"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M6 18 18 6M7 6h11v11" />
+                  </svg>
+                </a>
+              </div>
+              <!-- MESSENGER (link: CONFIG.messenger) -->
+              <div class="in" style="--d: 0.65s">
+                <a
+                  class="btn"
+                  id="ms"
+                  href="https://www.messenger.com/t/john.jeremy.33633"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="--tg: 30"
+                >
+                  <svg
+                    class="ic"
+                    style="--s: 72; border-radius: 0"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="currentColor"
+                      fill-rule="evenodd"
+                      d="M.001 11.639C.001 4.949 5.241 0 12.001 0S24 4.95 24 11.639c0 6.689-5.24 11.638-12 11.638-1.21 0-2.38-.16-3.47-.46a.96.96 0 0 0-.64.05l-2.39 1.05a.96.96 0 0 1-1.35-.85l-.07-2.14a.97.97 0 0 0-.32-.68A11.39 11.39 0 0 1 .002 11.64zM8.32 9.45l-3.52 5.6c-.35.53.32 1.139.82.75l3.79-2.87c.26-.2.6-.2.87 0l2.8 2.1c.84.63 2.04.4 2.6-.48l3.52-5.6c.35-.53-.32-1.13-.82-.75l-3.79 2.87c-.25.2-.6.2-.86 0l-2.8-2.1a1.8 1.8 0 0 0-2.61.48z"
+                    />
+                  </svg>
+                  <span class="tx">
+                    <b>Messenger</b>
+                    <span id="msh">Chat with me</span>
+                  </span>
+                  <svg
+                    class="ar"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M6 18 18 6M7 6h11v11" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+            <!-- INSTAGRAM + TIKTOK (magkatabi) -->
+            <div class="row2">
+              <!-- INSTAGRAM (link: CONFIG.instagram) -->
+              <div class="in" style="--d: 0.75s">
+                <a
+                  class="btn"
+                  id="ig"
+                  href="https://www.instagram.com/_jerym"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="--tg: 30"
+                >
+                  <svg
+                    class="ic"
+                    style="border-radius: 0"
+                    viewBox="0 0 100 100"
+                  >
+                    <rect
+                      x="8"
+                      y="8"
+                      width="84"
+                      height="84"
+                      rx="25"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="8"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="19"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="8"
+                    />
+                    <circle cx="72.5" cy="27.5" r="5.5" fill="currentColor" />
+                  </svg>
+                  <span class="tx">
+                    <b>Instagram</b>
+                    <span id="igh">@_jerym</span>
+                  </span>
+                  <svg
+                    class="ar"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M6 18 18 6M7 6h11v11" />
+                  </svg>
+                </a>
+              </div>
+              <!-- TIKTOK (link: CONFIG.tiktok) -->
+              <div class="in" style="--d: 0.85s">
+                <a
+                  class="btn"
+                  id="tt"
+                  href="https://www.tiktok.com/@_jerym"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="--tg: 30"
+                >
+                  <svg
+                    class="ic"
+                    style="border-radius: 0"
+                    viewBox="0 0 100 100"
+                  >
+                    <path
+                      transform="translate(9.5 8) scale(3.5)"
+                      fill="currentColor"
+                      d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"
+                    />
+                  </svg>
+                  <span class="tx">
+                    <b>TikTok</b>
+                    <span id="tth">@_jerym</span>
+                  </span>
+                  <svg
+                    class="ar"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M6 18 18 6M7 6h11v11" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+            <!-- CALL NOW: bubuksan ang popup ng mga numero (CONFIG.phones) -->
+            <div class="in" style="--d: 0.95s">
+              <button class="btn" id="call" type="button" style="--tg: 54">
+                <svg class="ic" style="border-radius: 0" viewBox="0 0 100 100">
+                  <path
+                    transform="translate(9 9) scale(3.4)"
+                    fill="currentColor"
+                    d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"
+                  />
+                </svg>
+                <span class="tx">
+                  <b>Call now</b>
+                  <!-- NUMERO SA ILALIM NG "CALL NOW": dito mo mismo palitan ang text. Kapag binura mo ito (iwanang walang laman), kukunin ang unang numero sa CONFIG.phones -->
+                  <span id="callnum">+63 994 *** ****</span>
+                </span>
+                <svg
+                  class="ar"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M6 18 18 6M7 6h11v11" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- SAVE CONTACT: nagda-download / nagbubukas ng contact card (.vcf) na may pangalan, numbers, email at social links (CONFIG) -->
+            <div class="in" style="--d: 1s">
+              <button class="btn" id="save" type="button" style="--tg: 54">
+                <svg
+                  class="ic"
+                  style="--s: 66; border-radius: 0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M19 8v6M22 11h-6" />
+                </svg>
+                <span class="tx">
+                  <b>Save contact</b>
+                  <span id="savesub">Add me to your phone</span>
+                </span>
+                <svg
+                  class="ar"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M6 18 18 6M7 6h11v11" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <i class="sp t0" style="--m: 32; --g: 1"></i>
+      <!-- SEND A MESSAGE CARD -->
+      <section class="card in" style="--d: 1.1s">
+        <!-- Header ng card: paper-plane icon + title + Email/Phone label (pill) -->
+        <div class="ch">
+          <svg
+            viewBox="0 0 24 24"
+            fill="#fff"
+            stroke="#fff"
+            stroke-width="1"
+            stroke-linejoin="round"
+          >
+            <path d="M22 2 2 10.2l6.6 2.4L10.6 20l3.2-4.6 4.6 3.4z" />
+            <path
+              d="M8.6 12.6 22 2"
+              fill="none"
+              stroke="#5a3cc0"
+              stroke-width="1.2"
+            />
+          </svg>
+          <div class="ct">Send a Message</div>
+          <div class="pill" id="pill">
+            <span class="pt" id="pt">Email</span>
+          </div>
+        </div>
+        <!-- Textbox ng message. Ang expand icon (id="open") ay nagpapalaki nito habang nagta-type. -->
+        <div class="box">
+          <textarea
+            id="msg"
+            placeholder="Your Message…"
+            aria-label="Your message"
+            enterkeyhint="done"
+            autocomplete="off"
+            maxlength="800"
+          ></textarea>
+          <button
+            class="x"
+            id="open"
+            type="button"
+            aria-label="Expand message form"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+          </button>
+        </div>
+        <!-- Baba ng card: switch button (Email <-> Phone) + Send button -->
+        <div class="cf">
+          <button
+            class="sw"
+            id="sw"
+            type="button"
+            aria-label="Switch contact type"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m17 3 4 4-4 4M21 7H7M7 21l-4-4 4-4M3 17h14" />
+            </svg>
+          </button>
+          <div class="small" id="swl">Switch to SMS</div>
+          <button class="send" id="send" type="button">
+            <svg
+              id="sico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            >
+              <rect x="2.5" y="5" width="19" height="14" rx="1.5" />
+              <path d="m2.5 6 9.5 7.5L21.5 6M2.5 18.5l7-7M21.5 18.5l-7-7" />
+            </svg>
+            <span id="sendt">Send now</span>
+          </button>
+        </div>
+      </section>
+      <i class="sp t0" style="--m: 46; --g: 0.8"></i>
+      <!-- FOOTER: palitan ang © text sa loob ng span -->
+      <div class="foot">
+        <div class="rule line" style="--d: 1.3s"></div>
+        <span class="in" style="--d: 1.25s"
+          >© 2026 John Jeremy. All Rights Reserved.</span
+        >
+        <div class="rule r line" style="--d: 1.3s"></div>
+      </div>
+      <i class="sp t1" style="--m: 14; --g: 0.5"></i>
+    </main>
+    <!-- CALL POPUP: ang laman ng mga numero ay binubuo ng script.js mula sa CONFIG.phones -->
+    <div
+      class="ov"
+      id="callov"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Choose a number"
+    >
+      <div class="cbg" id="cbg"></div>
+      <!-- GLOW: hiwalay na layer sa likod ng sheet; pwesto ay galing sa script.js -->
+      <div class="sglow" id="sglow"></div>
+      <div class="sheet" id="csheet">
+        <div class="eb">
+          <i class="rule"></i>
+          <span>SELECT NUMBER</span>
+          <i class="rule r"></i>
+        </div>
+        <h2>Call John Jeremy</h2>
+        <p>Choose a number to open it in your phone app.</p>
+        <a class="opt" id="n1"></a>
+        <a class="opt" id="n2"></a>
+        <button class="cancel" type="button" data-close>Cancel</button>
+      </div>
+    </div>
+    <!-- PHOTO VIEWER: popup na malaking pfp pag pinindot ang profile photo -->
+    <div
+      class="pv"
+      id="pv"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Profile photo"
+    >
+      <div class="pvbg" id="pvbg"></div>
+      <div class="pvbox" id="pvbox">
+        <div class="pvi" id="pvi"></div>
+        <i class="pvdot" id="pvdot"></i>
+      </div>
+      <div class="pvcap" id="pvcap">
+        <b>John Jeremy</b>
+        <span>Tap anywhere to close</span>
+      </div>
+    </div>
+    <!-- TOAST: maliit na notification (hal. "Message sent") -->
+    <div class="toast" id="toast" role="status"></div>
+    <!-- LOGIC: lahat ng gumagalaw (send, popup, animation) ay nasa script.js. Dapat nasa dulo ng body. -->
+    <script src="script.js"></script>
+  </body>
+</html>
