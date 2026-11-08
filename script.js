@@ -69,8 +69,37 @@ const stage = $("stage"),
 let mode = "email";
 const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
 const EASE = "cubic-bezier(.22,1,.36,1)";
+// PLATFORM FLAGS: declared once, here, because size(), Call now, keyboard lift and Save contact all read them.
+const UA = navigator.userAgent;
+const IOS =
+  /iPad|iPhone|iPod/.test(UA) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const ANDROID = /Android/i.test(UA);
+const coarse = matchMedia("(pointer:coarse)").matches;
+// SAFE AREAS: JS cannot read env(safe-area-inset-*) directly. A hidden zero-size probe pads itself with env()
+// and we read the computed padding. Every value is 0 where env() is unsupported.
+const probe = document.createElement("div");
+probe.setAttribute("aria-hidden", "true");
+probe.style.cssText =
+  "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;" +
+  "padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";
+document.body.appendChild(probe);
+let ins = { t: 0, r: 0, b: 0, l: 0 };
+function readInsets() {
+  const s = getComputedStyle(probe);
+  ins = {
+    t: parseFloat(s.paddingTop) || 0,
+    r: parseFloat(s.paddingRight) || 0,
+    b: parseFloat(s.paddingBottom) || 0,
+    l: parseFloat(s.paddingLeft) || 0,
+  };
+}
+readInsets();
 // Kinukuwenta ang --u (1 design unit) ayon sa screen. DAPAT kapareho ng formula sa style.css (section 1).
 // Naka-freeze habang may popup/keyboard para hindi tumalon ang layout.
+// Two-column landscape: u = min(1, usableWidth / 1960, max(floor, usableHeight / 1280)), where usable = viewport minus
+// safe areas, and floor = 0.32 on touch screens (0.2 elsewhere). The floor is --umin in style.css. On a phone held
+// sideways the page keeps readable text and scrolls a little, instead of shrinking until the text is unreadable.
 const landMQ = matchMedia("(orientation:landscape)");
 let lastU = 0,
   lastH = "";
@@ -80,13 +109,16 @@ function size(force) {
     (document.querySelector(".ov.on") || stage.classList.contains("typing"))
   )
     return;
+  readInsets();
   const W = innerWidth,
     H = innerHeight,
     land = landMQ.matches,
     base = Math.min(W, 720) / 941;
+  const Wa = Math.max(1, W - ins.l - ins.r),
+    Ha = Math.max(1, H - ins.t - ins.b);
   const u =
     land && W >= 560
-      ? Math.min(1, Math.max(0.2, Math.min(W / 1960, H / 1280)))
+      ? Math.min(1, Wa / 1960, Math.max(coarse ? 0.32 : 0.2, Ha / 1280))
       : land
         ? base
         : Math.min(base, H / 1685);
@@ -161,6 +193,12 @@ addEventListener(
    3. ILAGAY ANG LINKS, NUMBERS AT PHOTO MULA SA CONFIG
    Dito kinukuha ng mga buttons ang laman galing sa CONFIG sa taas.
    ========================================================== */
+// Phone numbers for tel: links: digits plus one leading "+" (E.164), so every platform gets a valid number.
+const telOf = (p) => {
+  const raw = String((p && (p.tel || p.label)) || ""),
+    digits = raw.replace(/\D/g, "");
+  return (raw.trim().charAt(0) === "+" ? "+" : "") + digits;
+};
 $("fb").href = CONFIG.facebook;
 $("ms").href = CONFIG.messenger;
 $("ig").href = CONFIG.instagram;
@@ -176,7 +214,7 @@ if (!$("callnum").textContent.trim())
 CONFIG.phones.forEach((p, i) => {
   const a = $("n" + (i + 1));
   if (!a) return; // may 3rd+ number sa CONFIG pero walang slot sa popup: laktawan, huwag mag-crash
-  a.href = "tel:" + p.tel;
+  a.href = "tel:" + telOf(p);
   const m = /^(\+\d+)\s+(.+)$/.exec(p.label),
     cc = m ? m[1] : "",
     digits = m ? m[2] : p.label,
@@ -274,8 +312,26 @@ addEventListener("keydown", (e) => {
       .querySelectorAll(".ov.on")
       .forEach((o) => (o.id === "callov" ? closeCall() : hide(o)));
 });
-// CALL NOW: bubukas ang popup ng mga numero (lahat ng device). Ang pag-save ng contact ay nasa hiwalay na "Save contact" button (section 15).
-$("call").onclick = openCall;
+// CALL NOW, by platform:
+//   iOS: the button is a real <a href="tel:primary">. We do nothing, so Safari shows its own native call confirmation.
+//        A web page cannot ask iOS for a multi-number chooser, so no popup is shown.
+//   Android and desktop: the custom number popup (openCall), exactly as before. The href stays as a no-JS fallback.
+// Ang pag-save ng contact ay nasa hiwalay na "Save contact" button (section 15).
+const callBtn = $("call");
+callBtn.href = "tel:" + telOf(CONFIG.phones[0]);
+if (IOS) {
+  callBtn.setAttribute("aria-label", "Call " + CONFIG.phones[0].label);
+} else {
+  callBtn.setAttribute("role", "button");
+  callBtn.setAttribute("aria-haspopup", "dialog");
+  callBtn.draggable = false;
+  // it used to be a <button>, so keep Android's long-press link menu from appearing on it
+  if (coarse) callBtn.addEventListener("contextmenu", (e) => e.preventDefault());
+  callBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    openCall();
+  });
+}
 /* ==========================================================
    6. PAGE LOCK (walang drag ng buong page)
    Pinapayagan na ang pinch-zoom at pag-pan kapag naka-zoom (accessibility). Ang pinipigilan lang ay ang
@@ -487,10 +543,6 @@ let kbRatio = 0;
 try {
   kbRatio = +localStorage.getItem("kbr") || 0;
 } catch (e) {}
-const coarse = matchMedia("(pointer:coarse)").matches;
-const IOS =
-  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 // Sa iOS, pina-pan ng Safari ang visual viewport kaya ito ang pang-counter
 const vvTop = () =>
   IOS && window.visualViewport ? window.visualViewport.offsetTop : 0;
@@ -545,11 +597,29 @@ function measure(h) {
   box.style.height = prev;
 }
 function goals(eb) {
+  // pad = gap kept above the card. It includes the top safe area (status bar in Add to Home Screen mode, notch in
+  // landscape), so the expand/collapse button is never pushed under it.
+  const pad = 10 + ins.t;
   const gh =
-    closing || !expanded ? boxBase : Math.max(boxBase, eb - 20 - chromeH);
+    closing || !expanded ? boxBase : Math.max(boxBase, eb - pad - 10 - chromeH);
   if (closing) return [gh, 0];
   measure(gh);
-  return [gh, Math.max(0, Math.min(mBot + 10 - eb, mTop - 10))];
+  return [gh, Math.max(0, Math.min(mBot + 10 - eb, mTop - pad))];
+}
+// Page lift. Portrait: the whole .stage is translated. Two-column landscape: .stage is a scroll container
+// (overflow-y:auto), and translating it would also raise its clip box and cut the card off, so the stage stays
+// put and its children are translated instead.
+const useKids = () => landMQ.matches && innerWidth >= 560;
+function setShift(y) {
+  const v = "translate3d(0," + y + "px,0)";
+  if (useKids()) {
+    stage.style.transform = "";
+    for (const k of stage.children) k.style.transform = v;
+  } else stage.style.transform = v;
+}
+function clearShift() {
+  stage.style.transform = "";
+  for (const k of stage.children) k.style.transform = "";
 }
 // Isang frame ng spring animation: sabay ang paglaki ng textbox at pagtaas ng page
 function frame(t) {
@@ -576,7 +646,7 @@ function frame(t) {
     vH = vS = 0;
   }
   box.style.height = done && !expanded ? "" : curH + "px";
-  stage.style.transform = "translate3d(0," + (vvTop() - shiftCur) + "px,0)";
+  setShift(vvTop() - shiftCur);
   if (!done) raf = requestAnimationFrame(frame);
   else if (closing) finishTyping();
 }
@@ -602,7 +672,7 @@ function lift() {
     curH = gh;
     shiftCur = gs;
     box.style.height = expanded ? gh + "px" : "";
-    stage.style.transform = "translate3d(0," + (vvTop() - gs) + "px,0)";
+    setShift(vvTop() - gs);
     return;
   }
   kick();
@@ -632,7 +702,7 @@ function finishTyping() {
   stage.classList.remove("typing");
   syncPause();
   stage.style.transition = "";
-  stage.style.transform = "";
+  clearShift();
   setTimeout(size, 450);
 }
 function setExpanded(v) {
@@ -875,7 +945,7 @@ function onRotate() {
     finishTyping();
     msg.blur();
   }
-  stage.style.transform = "";
+  clearShift();
   stage.scrollTop = 0;
   scrollTo(0, 0);
   rotT.forEach(clearTimeout);
@@ -1320,13 +1390,23 @@ msg.addEventListener("keydown", (e) => {
    Walang web API na nagsisingit ng contact nang tahimik (ang navigator.contacts ay pambasa/pampili lang, hindi pangsulat).
    Ang pinakamalapit na totoo: iOS = bubukas ang native "Add Contact" card; Android = share sheet (kung suportado), kung hindi, .vcf download;
    Desktop = .vcf download. Nabubuo ang card mula sa CONFIG; walang backend. Hindi sinasabing "saved" hangga't hindi kumpirmado ng user.
+
+   iOS DELIVERY, in order of preference:
+     1. A real https URL (contact.vcf) answered by sw.js from the Cache API with Content-Type text/vcard and
+        Content-Disposition inline. Safari treats it like a file from a server and opens its native contact card
+        (Create New Contact / Add to Existing Contact) with no download step. Needs sw.js beside index.html.
+     2. If the service worker is unavailable (private mode, Lockdown Mode, file://, first tap before it is ready):
+        navigate to a blob: URL, the previous behaviour.
+     3. Tapping Save contact again within 15 seconds opens the share sheet with the .vcf file (iOS 15+), where
+        Contacts can be chosen.
+   Add to Home Screen (standalone) opens the card in an in-app view with a Done button, so the app is never left stuck.
+   Nothing here can confirm that the contact was saved, so the page never says it was.
    ========================================================== */
 const saveBtn = $("save"),
   saveSub = $("savesub"),
   saveIdle = saveSub.textContent;
-const ANDROID = /Android/i.test(navigator.userAgent);
 // In-app browsers (Messenger, Facebook, Instagram, TikTok) ay humaharang ng file/share
-const IN_APP = /FBAN|FBAV|FB_IAB|Instagram|Messenger|TikTok|musical_ly|Bytedance|; wv\)/i.test(navigator.userAgent);
+const IN_APP = /FBAN|FBAV|FB_IAB|Instagram|Messenger|TikTok|musical_ly|Bytedance|; wv\)/i.test(UA);
 const utf8 = new TextEncoder();
 const oneLine = (s) => String(s == null ? "" : s).replace(/[\r\n]+/g, " ").trim();
 const esc = (s) => oneLine(s).replace(/([\\;,])/g, "\\$1");
@@ -1406,12 +1486,15 @@ function prepare() {
     (vcfP = loadPhoto()
       .then((ph) => {
         const name = CONFIG.name.replace(/\s+/g, "-") + ".vcf",
-          blob = new Blob([vcard(ph)], { type: "text/vcard;charset=utf-8" });
+          text = vcard(ph),
+          blob = new Blob([text], { type: "text/vcard;charset=utf-8" });
         let file = null;
         try {
           file = new File([blob], name, { type: "text/vcard" });
         } catch (e) {}
-        return (vcf = { blob, file, name });
+        vcf = { blob, file, name, text, swUrl: "" };
+        prepareIOS(vcf);
+        return vcf;
       })
       .catch((e) => {
         vcfP = null;
@@ -1420,6 +1503,40 @@ function prepare() {
   );
 }
 setTimeout(prepare, 2500);
+// iOS only: register sw.js and store the finished vCard in the Cache API under /contact.vcf. sw.js answers
+// navigations to that URL from the cache. Resolves quietly with swUrl = "" on any failure, so the blob route still works.
+const VCF_CACHE = "linkertap-vcf-v1";
+function prepareIOS(v) {
+  if (!IOS || IN_APP || !("serviceWorker" in navigator) || !window.caches || !window.Response) return;
+  const url = new URL("contact.vcf", document.baseURI).href;
+  Promise.race([
+    navigator.serviceWorker
+      .register("sw.js")
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => caches.open(VCF_CACHE))
+      .then((c) =>
+        c.put(
+          url,
+          new Response(v.text, {
+            headers: {
+              "Content-Type": "text/vcard; charset=utf-8",
+              "Content-Disposition": 'inline; filename="' + v.name + '"',
+              "Cache-Control": "no-store",
+            },
+          }),
+        ),
+      )
+      .then(() => url),
+    new Promise((ok) => setTimeout(() => ok(""), 6000)),
+  ]).then(
+    (u) => {
+      v.swUrl = u || "";
+    },
+    () => {
+      v.swUrl = "";
+    },
+  );
+}
 const objUrl = (b) => {
   const u = URL.createObjectURL(b);
   setTimeout(() => URL.revokeObjectURL(u), 60000);
@@ -1440,15 +1557,30 @@ function download(v) {
   a.remove();
   toast("Contact file prepared. Open it to add to your contacts.");
 }
-function deliver(v) {
-  if (IOS) {
-    toast("Opening contact card. Tap Create New Contact to save.");
-    const u = objUrl(v.blob);
-    // home-screen mode: sa in-app view para may Done button (iwas ma-stuck); sa Safari tab: diretso
-    if (navigator.standalone) window.open(u, "_blank");
-    else location.href = u;
-    return setTimeout(() => setBusy(false), 1500);
+let iosLast = 0;
+function deliverIOS(v) {
+  const retry = Date.now() - iosLast < 15000;
+  iosLast = Date.now();
+  // Second tap soon after the first: the card did not open for this person, so offer the share sheet instead.
+  if (retry && v.file && navigator.canShare && navigator.canShare({ files: [v.file] })) {
+    toast("Choose Contacts in the share sheet, then tap Create New Contact.", 6000);
+    return navigator
+      .share({ files: [v.file], title: CONFIG.name })
+      .then(null, (e) => {
+        if (!e || e.name !== "AbortError") location.href = objUrl(v.blob);
+      })
+      .then(() => setBusy(false));
   }
+  const u = v.swUrl || objUrl(v.blob);
+  toast("Opening contact card. Tap Create New Contact or Add to Existing Contact. Nothing opened? Tap Save contact again.", 6500);
+  if (navigator.standalone) {
+    // home-screen mode: in-app view with a Done button (iwas ma-stuck). If the popup is blocked, say so instead of navigating away.
+    if (!window.open(u, "_blank")) toast("Open this page in Safari to save the contact.", 5000);
+  } else location.href = u;
+  return setTimeout(() => setBusy(false), 1500);
+}
+function deliver(v) {
+  if (IOS) return deliverIOS(v);
   if (ANDROID && CONFIG.androidShare && v.file && navigator.canShare && navigator.canShare({ files: [v.file] }))
     return navigator
       .share({ files: [v.file], title: CONFIG.name })
