@@ -288,9 +288,11 @@
                 </a>
               </div>
             </div>
-            <!-- CALL NOW: bubuksan ang popup ng mga numero (CONFIG.phones) -->
+            <!-- CALL NOW: a real tel: link (href is set from CONFIG.phones[0] by script.js).
+                 iOS: Safari handles it natively, no website popup.
+                 Android / desktop: script.js intercepts the tap and opens the number popup (CONFIG.phones). -->
             <div class="in" style="--d: 0.95s">
-              <button class="btn" id="call" type="button" style="--tg: 54">
+              <a class="btn" id="call" href="tel:+639946133680" style="--tg: 54">
                 <svg class="ic" style="border-radius: 0" viewBox="0 0 100 100">
                   <path
                     transform="translate(9 9) scale(3.4)"
@@ -314,7 +316,7 @@
                 >
                   <path d="M6 18 18 6M7 6h11v11" />
                 </svg>
-              </button>
+              </a>
             </div>
 
             <!-- SAVE CONTACT: nagda-download / nagbubukas ng contact card (.vcf) na may pangalan, numbers, email at social links (CONFIG) -->
@@ -449,7 +451,7 @@
       <div class="foot">
         <div class="rule line" style="--d: 1.3s"></div>
         <span class="in" style="--d: 1.25s"
-          >© 2026 John Jeremy. All Rights Reserved.</span
+          >© 2026 Linkertap. All Rights Reserved.</span
         >
         <div class="rule r line" style="--d: 1.3s"></div>
       </div>
