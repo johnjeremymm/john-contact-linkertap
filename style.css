@@ -19,6 +19,15 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   /* bilis ng intro animation: 1 = dati, 0.75 = mas mabilis. Palitan lang ito para i-tune. */
   --spd: 0.6;
+  /* Smallest --u in two-column landscape (must match the 0.2 / 0.32 floor in size() in script.js). */
+  --umin: 0.2px;
+}
+
+/* Touch screens (phones held sideways): keep text readable and let the page scroll a little instead of shrinking it further */
+@media (pointer: coarse) {
+  :root {
+    --umin: 0.32px;
+  }
 }
 
 /* Landscape na masikip (< 560px ang lapad): isang column pa rin, scale batay sa lapad */
@@ -28,10 +37,24 @@
   }
 }
 
-/* landscape / desktop window: two columns, so the scale is based on the width of both columns and the height of the tallest one */
+/* landscape / desktop window: two columns, so the scale is based on the width of both columns and the height of the tallest one.
+   Width and height are the usable ones (minus iOS safe areas). Same formula as size() in script.js. */
 @media (orientation: landscape) and (min-width: 560px) {
   :root {
-    --u: min(1px, max(0.2px, min(calc(100vw / 1960), calc(100dvh / 1280))));
+    --u: min(
+      1px,
+      calc(
+        (100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) /
+          1960
+      ),
+      max(
+        var(--umin),
+        calc(
+          (100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) /
+            1280
+        )
+      )
+    );
   }
 }
 
@@ -149,7 +172,7 @@ svg {
 @media (orientation: landscape) and (min-width: 560px) {
   .stage {
     display: grid;
-    width: calc(1902 * var(--u));
+    /* width and padding: see section 13 (they include the iOS safe areas) */
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas: "hd rc" "foot foot";
     /* row 1 = lahat ng sobrang taas (naka-sentro ang laman), row 2 = footer na nasa pinakababa; kapag masikip, nag-i-scroll nang buo */
@@ -158,7 +181,6 @@ svg {
     row-gap: 0;
     align-content: stretch;
     align-items: center;
-    padding: calc(40 * var(--u)) calc(30 * var(--u));
   }
   .stage > .sp {
     display: none;
@@ -832,6 +854,10 @@ h1 .b {
 
 .box {
   position: relative;
+  /* own stacking context: the expand button below can never be painted under anything outside the box */
+  isolation: isolate;
+  /* size of the expand/collapse button: scales with the page but never below 30px, so it stays visible and tappable */
+  --xs: max(calc(54 * var(--u)), 30px);
   margin-top: calc(24 * var(--u));
   height: calc(158 * var(--u));
   border-radius: calc(40 * var(--u));
@@ -857,9 +883,13 @@ h1 .b {
   color: var(--ink);
   font: inherit;
   font-size: max(16px, calc(34 * var(--u)));
-  padding: calc(30 * var(--u)) calc(86 * var(--u)) calc(10 * var(--u))
+  /* right padding = button width + gap, so typed text never runs under the button */
+  padding: calc(30 * var(--u)) calc(var(--xs) + 32 * var(--u)) calc(10 * var(--u))
     calc(40 * var(--u));
   overflow: auto;
+  /* below the button; iOS promotes a scrolling textarea to its own layer, the button gets one too (see .x) */
+  position: relative;
+  z-index: 0;
   -webkit-user-select: text;
   user-select: text;
 }
@@ -871,16 +901,28 @@ h1 .b {
 
 .x {
   position: absolute;
+  z-index: 2;
   right: calc(20 * var(--u));
   top: calc(20 * var(--u));
-  width: calc(54 * var(--u));
-  height: calc(54 * var(--u));
+  width: var(--xs);
+  height: var(--xs);
   background: none;
   border: 0;
   color: #fff;
   cursor: pointer;
-  padding: calc(10 * var(--u));
+  padding: calc(var(--xs) * 0.185);
+  touch-action: manipulation;
+  /* Safari paints a scrolling textarea on its own compositing layer; a composited, higher z-index button always stays above it */
+  transform: translateZ(0);
+  will-change: transform;
   transition: transform 0.3s var(--ease);
+}
+
+/* invisible touch area of at least 44px around the button (Apple's minimum), without changing how it looks */
+.x::after {
+  content: "";
+  position: absolute;
+  inset: min(0px, calc((var(--xs) - 44px) / 2));
 }
 
 .x svg {
@@ -890,7 +932,7 @@ h1 .b {
 
 @media (hover: hover) {
   .x:hover {
-    transform: scale(1.15);
+    transform: translateZ(0) scale(1.15);
   }
 }
 
@@ -1530,10 +1572,12 @@ h1 .b {
 
 @media (orientation: landscape) and (min-width: 560px) {
   .stage {
-    padding: calc(40 * var(--u))
-      max(calc(30 * var(--u)), env(safe-area-inset-right, 0px))
-      calc(40 * var(--u))
-      max(calc(30 * var(--u)), env(safe-area-inset-left, 0px));
+    --pl: max(calc(30 * var(--u)), env(safe-area-inset-left, 0px));
+    --pr: max(calc(30 * var(--u)), env(safe-area-inset-right, 0px));
+    /* 1842u = the designed content width (1902u minus 2 x 30u); notch / home-indicator space is added, not taken out of it */
+    width: calc(1842 * var(--u) + var(--pl) + var(--pr));
+    padding: calc(40 * var(--u)) var(--pr)
+      calc(40 * var(--u) + env(safe-area-inset-bottom, 0px)) var(--pl);
   }
 }
 
@@ -1593,6 +1637,12 @@ h1 .b {
 
   .small {
     font-size: calc(27 * var(--u));
+  }
+
+  /* handles, usernames and contact labels under the platform names: this was max(13px, 28u), which made them far larger
+     than the rest of the page on a phone held sideways (28u is only about 9px there) and pushed them out of the buttons */
+  .tx span {
+    font-size: calc(28 * var(--u));
   }
 }
 
