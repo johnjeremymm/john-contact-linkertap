@@ -18,7 +18,7 @@ const CONFIG = {
   // Links ng social buttons. Palitan lang ang laman ng quotes.
   facebook: "https://www.facebook.com/john.jeremy.33633",
   // TINGNAN: dating "john.jeremy33633" (walang tuldok) ito, hindi tugma sa Facebook link. I-test ang link na ito.
-  messenger: "https://www.messenger.com/t/john.jeremy.33633", // diretso sa chat thread (hindi sa profile)
+  messenger: "https://m.me/john.jeremy.33633", // diretso sa chat; mas maaasahan sa mobile kaysa messenger.com/t/. I-test ito.
   instagram: "https://www.instagram.com/_jerym",
   tiktok: "https://www.tiktok.com/@_jerym",
 
@@ -40,7 +40,7 @@ const CONFIG = {
   // EMAIL (mailto): pag pinindot ang "Send now", magbubukas ang email app ng bisita na nakalagay na ang To, subject at message.
   email: "johnjeremymm@gmail.com",
   emailSubject: "Message from my website",
-  smsNumber: "+639946133680", // tatanggap ng SMS kapag "Switch to SMS" ang pinili
+  smsNumber: "", // tatanggap ng SMS kapag "Switch to SMS" ang pinili. Walang laman = gagamitin ang unang numero sa phones.
 
   // SAVE CONTACT: dagdag na detalye ng contact card. Walang laman = hindi isasama sa card.
   // firstName / lastName: kung walang laman, hinahati mula sa name sa taas. Ang phones, email, social links at photo ay galing din sa taas.
@@ -55,6 +55,9 @@ const CONFIG = {
   },
   // Android: subukan muna ang share sheet. Kung walang Contacts na lumalabas sa share sheet ng phone mo, gawing false para direktang .vcf na.
   androidShare: true,
+  // iOS Call now: true = lalabas ang popup na may dalawang numero (pili ka muna, saka lalabas ang native iOS confirm).
+  // false = diretsong tawag sa unang numero gamit ang native iOS confirm (isang numero lang ang maaabot).
+  iosCallPopup: true,
 };
 /* ==========================================================
    2. HELPERS + PAGE SIZE
@@ -199,6 +202,8 @@ const telOf = (p) => {
     digits = raw.replace(/\D/g, "");
   return (raw.trim().charAt(0) === "+" ? "+" : "") + digits;
 };
+// SMS recipient: CONFIG.smsNumber kung may laman, kung wala ay ang unang numero sa CONFIG.phones
+const smsTo = () => CONFIG.smsNumber || telOf(CONFIG.phones[0]);
 $("fb").href = CONFIG.facebook;
 $("ms").href = CONFIG.messenger;
 $("ig").href = CONFIG.instagram;
@@ -313,13 +318,14 @@ addEventListener("keydown", (e) => {
       .forEach((o) => (o.id === "callov" ? closeCall() : hide(o)));
 });
 // CALL NOW, by platform:
-//   iOS: the button is a real <a href="tel:primary">. We do nothing, so Safari shows its own native call confirmation.
-//        A web page cannot ask iOS for a multi-number chooser, so no popup is shown.
-//   Android and desktop: the custom number popup (openCall), exactly as before. The href stays as a no-JS fallback.
+//   All platforms: the custom number popup (openCall). Each option is a real tel: link, so iOS still shows its own native
+//        call confirmation for the number that was picked. The button href stays as a no-JS fallback.
+//   iOS only, when CONFIG.iosCallPopup is false: the button is a plain <a href="tel:primary"> and Safari shows its native
+//        confirmation straight away. A web page cannot ask iOS for a multi-number chooser, so only the first number is reachable.
 // Ang pag-save ng contact ay nasa hiwalay na "Save contact" button (section 15).
 const callBtn = $("call");
 callBtn.href = "tel:" + telOf(CONFIG.phones[0]);
-if (IOS) {
+if (IOS && !CONFIG.iosCallPopup) {
   callBtn.setAttribute("aria-label", "Call " + CONFIG.phones[0].label);
 } else {
   callBtn.setAttribute("role", "button");
@@ -1125,7 +1131,7 @@ function ringFx(el, cls, color, kf, dur, delay) {
 // Effects pag nabuksan na ang email/SMS app: check icon, confetti, rings
 function sentFx() {
   const sb = $("send");
-  toast("Draft is ready. Press Send in your app to finish.");
+  toast("Your app should be open now. Press Send there to finish.");
   sb.classList.add("ok");
   setIcon("check", true);
   burst(sb);
@@ -1345,14 +1351,14 @@ function send() {
   if (mode === "phone") {
     const sep = IOS ? "&" : "?";
     openApp(
-      "sms:" + CONFIG.smsNumber + sep + "body=" + encodeURIComponent(m),
+      "sms:" + smsTo() + sep + "body=" + encodeURIComponent(m),
       sentFx,
       () =>
         copyText(m).then((ok) =>
           toast(
             ok
-              ? "Couldn’t open SMS. Message copied, text it to " + CONFIG.smsNumber
-              : "Couldn’t open SMS. Text me at " + CONFIG.smsNumber,
+              ? "Couldn’t open SMS. Message copied, text it to " + smsTo()
+              : "Couldn’t open SMS. Text me at " + smsTo(),
           ),
         ),
     );
@@ -1608,7 +1614,14 @@ const run = (v) => {
 saveBtn.onclick = () => {
   if (saving) return;
   if (IN_APP)
-    return toast("This in-app browser can't save contacts. Open this page in Safari or Chrome.", 5000);
+    return copyText(location.href).then((ok) =>
+      toast(
+        ok
+          ? "This in-app browser can't save contacts. Link copied. Paste it in Safari or Chrome."
+          : "This in-app browser can't save contacts. Open this page in Safari or Chrome.",
+        5000,
+      ),
+    );
   setBusy(true);
   if (vcf) run(vcf);
   else prepare().then(run, saveFail);
