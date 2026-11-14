@@ -18,7 +18,7 @@ const CONFIG = {
   // Links ng social buttons. Palitan lang ang laman ng quotes.
   facebook: "https://www.facebook.com/john.jeremy.33633",
   // TINGNAN: dating "john.jeremy33633" (walang tuldok) ito, hindi tugma sa Facebook link. I-test ang link na ito.
-  messenger: "https://m.me/john.jeremy.33633", // diretso sa chat; mas maaasahan sa mobile kaysa messenger.com/t/. I-test ito.
+  messenger: "https://www.messenger.com/t/john.jeremy.33633", // diretso sa chat thread. Na-test: bumubukas sa Messenger app. Ang m.me ay sa browser lang napunta.
   instagram: "https://www.instagram.com/_jerym",
   tiktok: "https://www.tiktok.com/@_jerym",
 
