@@ -1,7 +1,7 @@
 /* ==========================================================
    style.css  -  LAHAT NG DESIGN NG "LET'S CONNECT" PAGE
    Dito ang kulay, laki, spacing, layout at animations.
-   Gabay: hanapin ang number sa taas (1-12) para madaling makita ang section.
+   Gabay: hanapin ang number sa taas (1-15) para madaling makita ang section.
    TIP: lahat ng laki ay nakabase sa --u kaya huwag mag-hardcode ng px maliban sa popups.
    ========================================================== */
 
@@ -1470,14 +1470,6 @@ h1 .b {
   background: rgba(3, 2, 10, 0.8);
 }
 
-/* blur ay para lang sa desktop (mouse/trackpad), kung saan kaya ng GPU */
-@media (hover: hover) and (pointer: fine) {
-  .cbg {
-    background: rgba(3, 2, 10, 0.7);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-  }
-}
 
 #callov .sheet {
   position: relative;
